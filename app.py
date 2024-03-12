@@ -11,17 +11,22 @@ from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
 
 def read_txt_file(uploaded_file):
-    with open(uploaded_file.name, 'r', encoding='utf-8') as file:
-        return file.read()
+    return uploaded_file.getvalue().decode("utf-8")
 
 def get_pdf_text(pdf_docs):
     text = ""
     for file in pdf_docs:
+       
         if file.name.endswith('.pdf'):
             pdf_reader = PdfReader(file)
             for page in pdf_reader.pages:
                 text += page.extract_text()
+        
         elif file.name.endswith('.txt'):
+            file_contents = file.getvalue() if hasattr(file, "getvalue") else None  # Check if file is an UploadedFile
+            if file_contents is not None:
+                text += file_contents.decode("utf-8")  # Decode the bytes to a string
+
             text += read_txt_file(file)
     return text
 
@@ -66,6 +71,8 @@ def handle_userinput(user_question):
         st.session_state.chat_history = response['chat_history']
 
         for i, message in enumerate(st.session_state.chat_history):
+            print("message")
+            print(message)
             modified_content = message.content.replace("\n", "<br>")
             if i % 2 == 0:
                 st.write(user_template.replace(
@@ -96,7 +103,7 @@ def main():
         st.subheader("Seus documentos:")
         pdf_docs = st.file_uploader(
             "Carregue seus documentos PDF aqui e clique em PROCESSAR.", accept_multiple_files=True)
-        if st.button("Process"):
+        if st.button("PROCESSAR"):
             if pdf_docs is not None:  # Check if pdf_docs is not None
                 with st.spinner("Processing"):
                     # get pdf text
@@ -111,6 +118,7 @@ def main():
                     # create conversation chain
                     st.session_state.conversation = get_conversation_chain(
                         vectorstore)
+                st.success("ARQUIVOS PROCESSADOS.")
             else:
                 st.warning("No document to talk with, please add a document AND process it")
 
