@@ -56,12 +56,13 @@ def handle_userinput(user_question):
     st.session_state.chat_history = response['chat_history']
 
     for i, message in enumerate(st.session_state.chat_history):
+        modified_content = message.content.replace("\n", "<br>")
         if i % 2 == 0:
             st.write(user_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
+                "{{MSG}}", modified_content), unsafe_allow_html=True)
         else:
             st.write(bot_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
+                "{{MSG}}", modified_content), unsafe_allow_html=True)
 
 
 def main():
@@ -75,8 +76,8 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    st.header("Chat with multiple PDFs :books:")
-    user_question = st.text_input("Ask a question about your documents:")
+    # st.header("Chat com multiplos PDFs :books:")
+    user_question = st.text_input("Chat com seus documentos:")
     if user_question:
         handle_userinput(user_question)
 
