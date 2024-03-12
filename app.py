@@ -39,6 +39,7 @@ def get_vectorstore(text_chunks):
 
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
+    
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
     memory = ConversationBufferMemory(
@@ -52,23 +53,25 @@ def get_conversation_chain(vectorstore):
 
 
 def handle_userinput(user_question):
-    response = st.session_state.conversation({'question': user_question})
-    st.session_state.chat_history = response['chat_history']
+    if callable(st.session_state.conversation):  # Check if conversation is callable
+        response = st.session_state.conversation({'question': user_question})
+        st.session_state.chat_history = response['chat_history']
 
-    for i, message in enumerate(st.session_state.chat_history):
-        modified_content = message.content.replace("\n", "<br>")
-        if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", modified_content), unsafe_allow_html=True)
-        else:
-            st.write(bot_template.replace(
-                "{{MSG}}", modified_content), unsafe_allow_html=True)
-
+        for i, message in enumerate(st.session_state.chat_history):
+            modified_content = message.content.replace("\n", "<br>")
+            if i % 2 == 0:
+                st.write(user_template.replace(
+                    "{{MSG}}", modified_content), unsafe_allow_html=True)
+            else:
+                st.write(bot_template.replace(
+                    "{{MSG}}", modified_content), unsafe_allow_html=True)
+    else:
+        st.warning("Adicione documentos e clique em PROCESSAR antes de enviar mensagems.")
 
 def main():
     load_dotenv()
-    st.set_page_config(page_title="Chat with multiple PDFs",
-                       page_icon=":books:")
+    st.set_page_config(page_title="Chat com seus documentos.",
+                       page_icon=":eyes:")
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
@@ -82,24 +85,26 @@ def main():
         handle_userinput(user_question)
 
     with st.sidebar:
-        st.subheader("Your documents")
+        st.subheader("Seus documentos:")
         pdf_docs = st.file_uploader(
-            "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
+            "Carregue seus documentos PDF aqui e clique em PROCESSAR.", accept_multiple_files=True)
         if st.button("Process"):
-            with st.spinner("Processing"):
-                # get pdf text
-                raw_text = get_pdf_text(pdf_docs)
+            if pdf_docs is not None:  # Check if pdf_docs is not None
+                with st.spinner("Processing"):
+                    # get pdf text
+                    raw_text = get_pdf_text(pdf_docs)
 
-                # get the text chunks
-                text_chunks = get_text_chunks(raw_text)
+                    # get the text chunks
+                    text_chunks = get_text_chunks(raw_text)
 
-                # create vector store
-                vectorstore = get_vectorstore(text_chunks)
+                    # create vector store
+                    vectorstore = get_vectorstore(text_chunks)
 
-                # create conversation chain
-                st.session_state.conversation = get_conversation_chain(
-                    vectorstore)
-
+                    # create conversation chain
+                    st.session_state.conversation = get_conversation_chain(
+                        vectorstore)
+            else:
+                st.warning("No document to talk with, please add a document AND process it")
 
 if __name__ == '__main__':
     main()
