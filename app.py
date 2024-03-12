@@ -10,12 +10,19 @@ from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
 
+def read_txt_file(uploaded_file):
+    with open(uploaded_file.name, 'r', encoding='utf-8') as file:
+        return file.read()
+
 def get_pdf_text(pdf_docs):
     text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+    for file in pdf_docs:
+        if file.name.endswith('.pdf'):
+            pdf_reader = PdfReader(file)
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        elif file.name.endswith('.txt'):
+            text += read_txt_file(file)
     return text
 
 
