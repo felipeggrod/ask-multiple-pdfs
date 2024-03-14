@@ -86,7 +86,8 @@ def handle_userinput(user_question):
 def main():
     load_dotenv()
     st.set_page_config(page_title="Chat com seus documentos.",
-                       page_icon=":eyes:")
+                       page_icon=":eyes:",
+                       layout="wide")
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
@@ -96,8 +97,10 @@ def main():
 
     # st.header("Chat com multiplos PDFs :books:")
     user_question = st.text_input("Chat com seus documentos:")
+    st.write(123)
     if user_question:
         handle_userinput(user_question)
+    
 
     with st.sidebar:
         st.subheader("Seus documentos:")
@@ -120,7 +123,7 @@ def main():
                         vectorstore)
                 st.success("ARQUIVOS PROCESSADOS.")
             else:
-                st.warning("No document to talk with, please add a document AND process it")
+                st.warning("Nenhum documento adicionado, Adicione documentos e clique em PROCESSAR.")
 
 if __name__ == '__main__':
     main()
