@@ -9,6 +9,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
+from langchain.prompts import PromptTemplate
 
 def read_txt_file(uploaded_file):
     return uploaded_file.getvalue().decode("utf-8")
@@ -54,13 +55,34 @@ def get_conversation_chain(vectorstore):
     # llm = ChatOpenAI(model="gpt-4") #SUPER EXPENSIVE
 
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
+    print(vectorstore.as_retriever())
 
     memory = ConversationBufferMemory(
         memory_key='chat_history', return_messages=True)
+    
+    
+    # Given the following conversation and a follow-up message, \
+    # rephrase the follow-up message to a stand-alone question or instruction that \
+    # represents the user's intent, add all context needed if necessary to generate a complete and \
+    # unambiguous question or instruction, only based on the history, don't make up messages. \
+    # Maintain the same language as the follow up input message.
+
+    custom_template = """Você é um assistente jurídico brasileiro. \
+    Você sempre irá realizar exatamente o que lhe for pedido. \
+    Seu objetivo é ajudar a produtividade do advogado, qualquer que seja a tarefa solicitada. \
+    Você é capaz de gerar modelos de documentos, e sempre oferecerá ao usuário se ele gostaria de um modelo de documento. \
+    
+    Chat History:
+    {chat_history}
+
+    Follow Up Input: {question}
+    Standalone question or instruction:"""
+    
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(),
-        memory=memory
+        memory=memory,
+        condense_question_prompt=PromptTemplate.from_template(custom_template),
     )
     return conversation_chain
 
@@ -70,16 +92,16 @@ def handle_userinput(user_question):
         response = st.session_state.conversation({'question': user_question})
         st.session_state.chat_history = response['chat_history']
 
-        for i, message in enumerate(st.session_state.chat_history):
-            print("message")
-            print(message)
-            modified_content = message.content.replace("\n", "</br>")
-            if i % 2 == 0:
-                st.write(user_template.replace(
-                    "{{MSG}}", modified_content), unsafe_allow_html=True)
-            else:
-                st.write(bot_template.replace(
-                    "{{MSG}}", modified_content), unsafe_allow_html=True)
+    for i, message in reversed(list(enumerate(st.session_state.chat_history))):
+        # print("message")
+        # print(message)
+        modified_content = message.content.replace("\n", "</br>")
+        if i % 2 == 0:
+            st.write(user_template.replace(
+                "{{MSG}}", modified_content), unsafe_allow_html=True)
+        else:
+            st.write(bot_template.replace(
+                "{{MSG}}", modified_content), unsafe_allow_html=True)
     else:
         st.warning("Adicione documentos e clique em PROCESSAR antes de enviar mensagems.")
 
