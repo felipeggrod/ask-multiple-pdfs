@@ -73,7 +73,7 @@ def handle_userinput(user_question):
         for i, message in enumerate(st.session_state.chat_history):
             print("message")
             print(message)
-            modified_content = message.content.replace("\n", "<br>")
+            modified_content = message.content.replace("\n", "</br>")
             if i % 2 == 0:
                 st.write(user_template.replace(
                     "{{MSG}}", modified_content), unsafe_allow_html=True)
@@ -88,6 +88,14 @@ def main():
     st.set_page_config(page_title="Chat com seus documentos.",
                        page_icon=":eyes:",
                        layout="wide")
+    # hide madeWith
+    hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
@@ -97,11 +105,10 @@ def main():
 
     # st.header("Chat com multiplos PDFs :books:")
     user_question = st.text_input("Chat com seus documentos:")
-    st.write(123)
+
     if user_question:
         handle_userinput(user_question)
     
-
     with st.sidebar:
         st.subheader("Seus documentos:")
         pdf_docs = st.file_uploader(
@@ -124,6 +131,8 @@ def main():
                 st.success("ARQUIVOS PROCESSADOS.")
             else:
                 st.warning("Nenhum documento adicionado, Adicione documentos e clique em PROCESSAR.")
+        st.markdown('</br></br></br></br></br></br></br></br></br></br></br></br><p>Feito por Felipe Rodrigues: <b>felipergr@hotmail.com</b></p>', unsafe_allow_html=True)
+
 
 if __name__ == '__main__':
     main()
