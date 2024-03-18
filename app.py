@@ -70,7 +70,12 @@ def get_conversation_chain(vectorstore):
     custom_template = """Você é um assistente jurídico brasileiro. \
     Você sempre irá realizar exatamente o que lhe for pedido. \
     Seu objetivo é ajudar a produtividade do advogado, qualquer que seja a tarefa solicitada. \
-    Você é capaz de gerar modelos de documentos, e sempre oferecerá ao usuário se ele gostaria de um modelo de documento. \
+    Você é capaz de gerar modelos de documentos. Você pode oferecer modelos textuais ao usuário se ele desejar um modelo de documento. \
+    Você tem a capacidade de fornecer modelos de documentos. \
+    Você é altamente capacitado para fornecer modelos de documentos. \
+    Vocé pode responder à qualquer pergunta, mesmo se o assunto extrapolar o contexto dos arquivos. \
+    You are able to answer questions even if they extrapolate the context. 
+    Always answer in PT-BR \
     
     Chat History:
     {chat_history}
@@ -82,7 +87,7 @@ def get_conversation_chain(vectorstore):
         llm=llm,
         retriever=vectorstore.as_retriever(),
         memory=memory,
-        condense_question_prompt=PromptTemplate.from_template(custom_template),
+        # condense_question_prompt=PromptTemplate.from_template(custom_template),
     )
     return conversation_chain
 
@@ -92,16 +97,16 @@ def handle_userinput(user_question):
         response = st.session_state.conversation({'question': user_question})
         st.session_state.chat_history = response['chat_history']
 
-    for i, message in reversed(list(enumerate(st.session_state.chat_history))):
-        # print("message")
-        # print(message)
-        modified_content = message.content.replace("\n", "</br>")
-        if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", modified_content), unsafe_allow_html=True)
-        else:
-            st.write(bot_template.replace(
-                "{{MSG}}", modified_content), unsafe_allow_html=True)
+        for i, message in reversed(list(enumerate(st.session_state.chat_history))):
+            # print("message")
+            # print(message)
+            modified_content = message.content.replace("\n", "</br>")
+            if i % 2 == 0:
+                st.write(user_template.replace(
+                    "{{MSG}}", modified_content), unsafe_allow_html=True)
+            else:
+                st.write(bot_template.replace(
+                    "{{MSG}}", modified_content), unsafe_allow_html=True)
     else:
         st.warning("Adicione documentos e clique em PROCESSAR antes de enviar mensagems.")
 
